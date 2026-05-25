@@ -1,0 +1,114 @@
+# TÀI LIỆU BÀN GIAO KỸ THUẬT: WEBSITE KHÁCH SẠN BELLA PHÚ QUỐC
+
+> [!NOTE]
+> Đây là tài liệu bàn giao kỹ thuật chính thức cho dự án Website **Bella Hotel Phú Quốc**. Tài liệu này bao gồm hướng dẫn chi tiết về cấu trúc hệ thống, cách thức triển khai, vận hành và bảo trì dành cho đội ngũ phát triển và quản trị viên.
+
+---
+
+## 1. TỔNG QUAN HỆ THỐNG
+Dự án là một trang web khách sạn bao gồm trang chủ (Landing Page) để quảng bá, thu thập thông tin khách hàng muốn tư vấn và trang quản trị (Admin Dashboard) để theo dõi thông tin liên hệ và quản lý giá phòng công khai.
+
+### 1.1 Công nghệ sử dụng
+- **Frontend (Giao diện người dùng):**
+  - **HTML5/CSS3/Vanilla JavaScript:** Code phần giao diện chính của người dùng không phụ thuộc vào framework nặng nề, tối ưu hóa tốc độ.
+  - **Vite:** Công cụ build (Bundler) và môi trường phát triển (Dev Server) siêu tốc, mang lại hiệu năng cao khi phát triển ứng dụng.
+  - **Bootstrap 5 (CDN):** Sử dụng linh hoạt cho giao diện trang Quản trị (`admin.html`) để code nhanh gọn, tiết kiệm thời gian mà vẫn đảm bảo tính tương thích hiển thị (Responsive).
+- **Backend (API & Cơ sở dữ liệu):**
+  - **JSON-Server:** Công cụ giả lập (Mock) Restful API một cách nhanh chóng, sử dụng file `db.json` làm cơ sở dữ liệu lưu trữ trực tiếp.
+  - **Concurrently:** Gói NPM hỗ trợ chạy cả Frontend (Vite) và Backend (JSON-Server) đồng thời chỉ bằng 1 câu lệnh duy nhất.
+
+---
+
+## 2. CẤU TRÚC THƯ MỤC DỰ ÁN
+
+```text
+TEST/
+├── .gitignore              # Các file/thư mục không đưa lên Git (Vd: node_modules)
+├── package.json            # Cấu hình dự án NodeJS, khai báo thư viện và scripts
+├── package-lock.json       # Phiên bản đóng gói chính xác của thư viện NPM
+├── index.html              # Trang chủ khách sạn (Landing Page)
+├── admin.html              # Trang quản trị dành cho nhân viên/quản lý
+├── db.json                 # Hệ quản trị CSDL gốc (dữ liệu Giá phòng, Tin nhắn, Đặt phòng)
+├── public/                 # Các tài nguyên tĩnh ngoài hệ thống Vite
+└── src/                    # Chứa mã nguồn CSS và JS
+    ├── style.css           # Toàn bộ mã CSS giao diện của hệ thống Landing Page
+    ├── main.js             # Logic của trang chủ (Slider, Fetch giá, Khởi tạo Modal...)
+    ├── admin.js            # Logic của trang Quản trị (Lấy dữ liệu, Chỉnh sửa giá)
+    └── assets/             # Hình ảnh và Icon nội bộ
+```
+
+---
+
+## 3. HƯỚNG DẪN CÀI ĐẶT & TRIỂN KHAI (MÔI TRƯỜNG DEV)
+
+> [!IMPORTANT]
+> Trước khi triển khai, máy tính hệ thống yêu cầu phải cài đặt **Node.js** (Khuyến nghị phiên bản LTS mới nhất).
+
+1. **Khôi phục thư viện:**
+   Mở ứng dụng hoặc phần mềm Terminal, di chuyển (cd) tới thư mục gốc của dự án và chạy câu lệnh sau để tải các packages cần thiết:
+   ```bash
+   npm install
+   ```
+2. **Khởi động dự án:**
+   Chạy lệnh dưới đây để kích hoạt tính năng thông qua gói `concurrently`. Hệ thống sẽ tự động gọi Server mở Frontend (Vite) và Backend Database (JSON-Server):
+   ```bash
+   npm run dev
+   ```
+3. **Đường dẫn truy cập:**
+   - Website Trang chủ khách hàng: `http://localhost:5173` (hoặc cổng bất kỳ tùy thuộc Vite tạo ra, xem trên Terminal)
+   - Bảng Quản trị Admin: `http://localhost:5173/admin.html`
+   - Data Backend (Database): `http://localhost:3000`
+
+---
+
+## 4. HƯỚNG DẪN BUILD VÀ CẤU HÌNH PRODUCTION
+
+### 4.1. Đóng gói Frontend triển khai Host
+Để tiến hành triển khai bản thực tế (Tải lên Hosting/Server tĩnh nhằm phục vụ Website public ngoài mạng internet), chạy lệnh:
+```bash
+npm run build
+```
+Lệnh này sẽ tự động thu thập ảnh, nén mã code HTML/CSS/JS siêu nhỏ vào trong một thư mục là `dist/`. Đưa toàn bộ thư mục `dist/` này lên máy chủ Hosting (VD: Vercel, Netlify, cPanel, FTP web Nginx, IIS).
+
+### 4.2. Chuyển đổi Backend Database
+> [!WARNING]
+> Mặc định JSON Server chạy qua file db.json **không được thiết kế để sử dụng làm cơ sở dữ liệu thật trực tiếp cho hàng chục ngàn người truy cập**. Nó chỉ nên dùng để trình bày sản phẩm, nghiệm thu tính năng luồng dữ liệu hoặc áp dụng cho Website vừa và nhỏ có traffic thấp với hệ thống Cloud VPS/PaaS.
+
+- **Dành cho Demo dự án thật hoặc Traffic thấp:** Bạn thuê 1 Cloud VPS/PaaS (Ví dụ Render, Railway). Cài đặt môi trường Node, tải Source này lên và chạy lệnh `json-server --watch db.json --port 3000 --host 0.0.0.0` qua PM2.
+- **Để nâng cấp bền vững ở tương lai (Tuỳ chọn mở rộng):** Lập trình viên Backend có tay nghề cần viết lại file thực thi NodeJS/Express.js kết nối Database xịn (VD: MySQL, MongoDB). Sau đó sửa Domain API Data ở Frontend tại các vị trí sau:
+  - File `src/main.js`: Thay thế API Fetch ở dòng số 8 (e.g. `http://localhost:3000/rooms`) và các Post API gửi Forms.
+  - File `src/admin.js`: Thay thế biến hằng số tại dòng số 1 (`const API_URL = 'http://localhost:3000';`).
+
+---
+
+## 5. HƯỚNG DẪN VẬN HÀNH & CHỨC NĂNG
+
+### 5.1. Trang quản trị khách sạn dành cho quản lý (Admin Panel) 
+Bạn sẽ truy cập đường link `/admin.html` sẽ thấy 1 giao diện UI Bootstrap hiện đại phân loại thành 3 Tabs rất trực quan:
+- **Tab Phòng & Giá:** Quản trị viên nhập mức giá tuỳ tiện vào ô, bấm Button `Cập Nhật Giá Mới`. Trơn tru, real-time: mức giá đó lập tức được lưu vào API và thay đổi ở trang chủ hiển thị cho những ai ghé thăm Landing Page ở Tab mới.
+- **Tab Yêu Cầu Tư Vấn:** Hiển thị tự động một dạng Table ghi nhận lại dữ liệu những khách hàng có nhu cầu qua Nút bấm "Kiểm tra phòng trống" hoặc "Theo mức giá Book Ngay". Bạn sẽ biết thông tin qua: `ID Ticket, Email/Phone gọi Zalo, Kênh Facebook` và thời điểm khách yêu cầu.
+- **Tab Tin Nhắn:** Bất cứ khi nào khách lướt xuống cuối trang Footer (Contact Info) có Form chữ. Họ gửi lời nhắn, thông tin sẽ được đẩy trực tiếp lên Table này (Bao gồm nội dung khách kêu).
+
+### 5.2. Chức năng trải nghiệm người dùng (Frontend)
+- **Tự động nhận giá từ CSDL (Real-time Fetching):** Khi trang khởi tạo, code DOM thực thi đi thu gom (query) thẻ class `.room-card`, nó đối chiếu xem `dataset.roomName` trên HTML có giống tên Phòng trong Database không. Nếu khớp nó sẽ đứt đoạn kéo giá `room.price` render đẩy đè lên trang mạng. Bạn không cần làm mọi cách thủ công sửa HTML mỗi lần đổi mức phí!
+- **Hệ sinh thái Thu Thập Lead Form (Contact Form & Booking):** Cửa sổ Form tư vấn đặt phòng được tạo Modal linh hoạt. Các lệnh đều gói (stringified) toàn bộ thành chuẩn JSON - đẩy lên cho Frontend dưới định dạng Restful HTTP `POST/bookings` hoặc `POST/contacts` có cấp ID Timestamp minh bạch.
+
+---
+
+## 6. HƯỚNG DẪN BẢO TRÌ & NÂNG CẤP DỰ ÁN
+
+> [!TIP]
+> Một số trường hợp mà đội ngũ Vận hành Marketing sẽ cần thay đổi mà không cần là chuyên gia IT.
+
+1. **Thay đổi Hình ảnh quảng cáo, Banner:**
+   Nhân viên lấy ảnh đã chuẩn bị với tỷ lệ khung hình HD chuẩn. Đổi ảnh/ghi đè qua các folder `public/`, `src/assets/` hoặc thay URL ở các thẻ `<img src="...">` hay cấu hình CSS (VD: Background-image) ở file `index.html`.
+
+2. **Cách để thêm các loại phòng mẫu mới:**
+   - Mở file `db.json`, kéo xuống Object Array của `"rooms"`, tiến hành nhân bản bằng cách copy 1 cục phòng đang có và tạo thêm nó vào cuối file với `id` mới, `name`, và `price`.
+   - Tại màn hình code `index.html`, bạn tìm đến HTML layout khối `div` đang có class `.room-card`, nhân bản khối đó ra cho phòng mới. 
+   - Đảm bảo tham số thuộc tính `data-room-name="..."` trùng chính xác với biến `name` bên file db.js mà bạn mới tạo. Main.js sẽ hoàn toàn tự động bắt kịp giá đồng bộ chéo.
+
+3. **Mở rộng API JSON Server:**
+   Bất cứ khi nào bạn muốn thêm một bảng tính năng cho Web (Giả sử Blogs, Tin Tức khuyến mãi). Hãy mở file `db.json`, thêm 1 node Key/Value mảng rỗng (VD: `"news": []`) ở cấp gốc (Root level). Cỗ máy JSON-Server sẽ tức tốc Auto-Gen cho bạn một bộ RESTful Endpoints GET/POST/PUT/DELETE tại `http://localhost:3000/news` siêu nhanh gọn. Cứ như thế, việc của bạn chỉ là viết thêm code JS để bắt và Push dữ liệu lên theo chuẩn là được.
+
+"Add technical documentation"
